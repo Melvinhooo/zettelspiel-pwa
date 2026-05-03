@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Zettelspiel</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1a0f0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zettelspiel">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a0f0a;
+    --bg-2: #2a1810;
+    --paper: #f4ecd8;
+    --ink: #1a0f0a;
+    --accent: #e94f37;
+    --accent-2: #f4a261;
+    --gold: #e9c46a;
+    --green: #2a9d8f;
+    --red: #c1272d;
+    --teamA: #e94f37;
+    --teamB: #2a9d8f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: #1a0f0a; }
+  html, body { height: 100%; overflow-x: hidden; overscroll-behavior: none; }
+  body {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    background: #1a0f0a;
+    color: var(--paper);
+    min-height: 100vh;
+    min-height: 100dvh;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow-y: auto;
+  }
+  .app {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: #1a0f0a;
+  }
+  .screen { flex: 1; display: flex; flex-direction: column; padding: 20px; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .screen.hidden { display: none; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 4px 16px; }
+  .topbar h1 { font-family: 'Caveat', cursive; font-size: 32px; color: var(--accent-2); font-weight: 700; }
+  .topbar-btn {
+    background: #2a1810; border: 1px solid rgba(244, 236, 216, 0.25);
+    color: var(--paper); padding: 8px 14px; border-radius: 12px; font-family: inherit;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .title { text-align: center; margin: 30px 0 40px; }
+  .title-main {
+    font-family: 'Caveat', cursive; font-size: 72px; font-weight: 700; color: var(--accent);
+    line-height: 1; transform: rotate(-3deg); text-shadow: 4px 4px 0 var(--ink);
+  }
+  .title-sub { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: var(--accent-2); margin-top: 16px; opacity: 1; font-weight: 700; }
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 18px 24px; border: none; border-radius: 16px; font-family: inherit;
+    font-size: 18px; font-weight: 700; cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s; width: 100%; text-align: center;
+  }
+  .btn:active { transform: translateY(2px); }
+  .btn-primary { background: var(--accent); color: var(--paper); box-shadow: 0 4px 0 #b03a26, 0 6px 16px rgba(233, 79, 55, 0.3); }
+  .btn-primary:active { box-shadow: 0 2px 0 #b03a26; }
+  .btn-secondary { background: #2a1810; color: var(--paper); border: 2px solid rgba(244, 236, 216, 0.3); }
+  .btn-success { background: var(--green); color: var(--paper); box-shadow: 0 4px 0 #1f7368, 0 6px 16px rgba(42, 157, 143, 0.3); }
+  .btn-success:active { box-shadow: 0 2px 0 #1f7368; }
+  .btn-skip { background: var(--gold); color: var(--ink); box-shadow: 0 4px 0 #b89a4f; }
+  .btn-skip:active { box-shadow: 0 2px 0 #b89a4f; }
+  .btn-large { padding: 24px; font-size: 22px; }
+  .btn-test {
+    background: #1a0f0a; color: var(--gold); border: 2px dashed var(--gold);
+    padding: 14px; font-size: 15px;
+  }
+  .setup-section {
+    background: #2a1810; border: 1px solid rgba(244, 236, 216, 0.15);
+    border-radius: 20px; padding: 20px; margin-bottom: 16px;
+  }
+  .setup-label { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-2); margin-bottom: 12px; font-weight: 600; }
+  .team-input { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .team-color { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; }
+  .team-color.a { background: var(--teamA); }
+  .team-color.b { background: var(--teamB); }
+  input[type="text"], input[type="number"] {
+    flex: 1; background: rgba(244, 236, 216, 0.95); border: none; color: var(--ink);
+    padding: 14px 16px; border-radius: 12px; font-family: inherit; font-size: 16px;
+    font-weight: 600; width: 100%;
+  }
+  input:focus { outline: 2px solid var(--accent-2); }
+  .config-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .config-row label { font-size: 15px; }
+  .config-row input { max-width: 90px; text-align: center; }
+  .player-list { display: flex; flex-direction: column; gap: 8px; }
+  .player-row { display: flex; align-items: center; gap: 8px; }
+  .player-row .badge {
+    width: 28px; height: 28px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+    color: var(--paper); flex-shrink: 0;
+  }
+  .badge.a { background: var(--teamA); }
+  .badge.b { background: var(--teamB); }
+  .icon-btn {
+    background: #3d1f1f; border: none; color: var(--paper);
+    width: 36px; height: 36px; border-radius: 10px; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .add-btn {
+    margin-top: 8px; background: #1a0f0a;
+    border: 2px dashed rgba(244, 236, 216, 0.35); color: var(--accent-2);
+    padding: 12px; border-radius: 12px; font-family: inherit; font-weight: 600;
+    cursor: pointer; width: 100%;
+  }
+  .word-collect { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+  .word-progress { font-size: 14px; color: var(--accent-2); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 12px; }
+  .word-player-name { font-family: 'Caveat', cursive; font-size: 56px; color: var(--paper); margin-bottom: 8px; line-height: 1; }
+  .word-team-tag {
+    display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;
+  }
+  .word-team-tag.a { background: var(--teamA); color: white; }
+  .word-team-tag.b { background: var(--teamB); color: white; }
+  .word-instruction { font-size: 16px; margin-bottom: 24px; color: var(--paper); opacity: 0.9; }
+  .word-inputs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+  .word-input-wrap { position: relative; }
+  .word-input-wrap::before {
+    content: attr(data-num); position: absolute; left: -8px; top: -8px;
+    background: var(--accent); color: white; width: 28px; height: 28px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .word-input-wrap input { padding: 18px 20px 18px 28px; font-family: 'Caveat', cursive; font-size: 24px; font-weight: 700; }
+  .pass-prompt {
+    background: #2a1810; border: 2px solid var(--gold);
+    border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 24px;
+  }
+  .pass-prompt-icon { font-size: 48px; margin-bottom: 12px; }
+  .pass-prompt-text { font-size: 18px; font-weight: 600; }
+  .round-intro { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+  .round-num { font-size: 14px; letter-spacing: 4px; color: var(--accent-2); text-transform: uppercase; margin-bottom: 8px; }
+  .round-title {
+    font-family: 'Caveat', cursive; font-size: 84px; color: var(--accent); line-height: 1;
+    margin-bottom: 8px; text-shadow: 4px 4px 0 var(--ink); transform: rotate(-2deg);
+  }
+  .round-emoji { font-size: 80px; margin: 20px 0; }
+  .round-rules {
+    background: #2a1810; border: 1px solid rgba(244, 236, 216, 0.2);
+    border-radius: 20px; padding: 24px; margin-bottom: 32px; max-width: 400px;
+  }
+  .round-rules p { font-size: 16px; line-height: 1.5; margin-bottom: 8px; color: var(--paper); }
+  .round-rules .highlight { color: var(--gold); font-weight: 700; }
+  .next-up { margin-bottom: 24px; }
+  .next-up-label { font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--accent-2); margin-bottom: 8px; }
+  .next-up-name { font-family: 'Caveat', cursive; font-size: 48px; line-height: 1; }
+  .play-screen { flex: 1; display: flex; flex-direction: column; padding: 12px; }
+  .play-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 8px; }
+  .play-team { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+  .play-team .dot { width: 14px; height: 14px; border-radius: 50%; }
+  .play-team .dot.a { background: var(--teamA); }
+  .play-team .dot.b { background: var(--teamB); }
+  .play-round-info { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-2); }
+  .play-round-info .num { font-size: 16px; color: var(--paper); }
+  .timer {
+    font-family: 'Bricolage Grotesque', sans-serif; font-size: 96px; font-weight: 800;
+    text-align: center; color: var(--paper); line-height: 1; margin: 16px 0;
+    transition: color 0.2s, transform 0.2s;
+  }
+  .timer.warning { color: var(--gold); }
+  .timer.danger { color: var(--accent); animation: pulse 0.5s ease infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  .word-card {
+    flex: 1; background: var(--paper); color: var(--ink); border-radius: 24px;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+    margin-bottom: 16px; text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 0 8px var(--paper), inset 0 0 0 9px rgba(0, 0, 0, 0.08);
+    position: relative; min-height: 200px; transform: rotate(-1deg);
+  }
+  .word-card::before {
+    content: ''; position: absolute; top: 14px; left: 14px; right: 14px; bottom: 14px;
+    border: 1px dashed rgba(0, 0, 0, 0.15); border-radius: 16px; pointer-events: none;
+  }
+  .word-text { font-family: 'Caveat', cursive; font-size: 56px; font-weight: 700; line-height: 1.1; word-break: break-word; }
+  .word-counter {
+    position: absolute; top: 20px; right: 24px; font-size: 12px;
+    color: rgba(0, 0, 0, 0.5); font-weight: 600; letter-spacing: 1px;
+  }
+  .play-actions { display: flex; }
+  .scoreboard {
+    display: flex; justify-content: space-around; background: #2a1810;
+    border-radius: 16px; padding: 12px; margin-bottom: 12px;
+  }
+  .scoreboard-team { text-align: center; }
+  .scoreboard-name { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; opacity: 0.8; }
+  .scoreboard-score { font-family: 'Caveat', cursive; font-size: 36px; font-weight: 700; line-height: 1; }
+  .scoreboard-team.a .scoreboard-score { color: var(--teamA); }
+  .scoreboard-team.b .scoreboard-score { color: var(--teamB); }
+  .ready-screen { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 24px; }
+  .ready-icon { font-size: 100px; margin-bottom: 16px; }
+  .ready-team {
+    display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 14px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 12px; color: white;
+  }
+  .ready-team.a { background: var(--teamA); }
+  .ready-team.b { background: var(--teamB); }
+  .ready-player { font-family: 'Caveat', cursive; font-size: 64px; color: var(--paper); line-height: 1; margin-bottom: 8px; }
+  .ready-info { font-size: 16px; opacity: 0.8; margin-bottom: 32px; }
+  .summary { flex: 1; display: flex; flex-direction: column; padding: 12px; }
+  .summary-title { font-family: 'Caveat', cursive; font-size: 56px; text-align: center; color: var(--accent); margin-bottom: 8px; text-shadow: 3px 3px 0 var(--ink); }
+  .summary-sub { text-align: center; color: var(--accent-2); text-transform: uppercase; letter-spacing: 3px; font-size: 13px; margin-bottom: 24px; }
+  .summary-scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .summary-team { background: #2a1810; border-radius: 20px; padding: 20px; text-align: center; border-top: 6px solid; }
+  .summary-team.a { border-color: var(--teamA); }
+  .summary-team.b { border-color: var(--teamB); }
+  .summary-team-name { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; font-weight: 600; }
+  .summary-team-score { font-family: 'Caveat', cursive; font-size: 64px; line-height: 1; font-weight: 700; }
+  .summary-team.a .summary-team-score { color: var(--teamA); }
+  .summary-team.b .summary-team-score { color: var(--teamB); }
+  .summary-team-delta { margin-top: 4px; font-size: 14px; color: var(--accent-2); }
+  .winner-screen { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 24px; }
+  .winner-trophy { font-size: 120px; margin-bottom: 16px; animation: trophy 2s ease-in-out infinite; }
+  @keyframes trophy { 0%, 100% { transform: rotate(-5deg) scale(1); } 50% { transform: rotate(5deg) scale(1.05); } }
+  .winner-label { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .winner-name { font-family: 'Caveat', cursive; font-size: 96px; line-height: 1; margin-bottom: 16px; text-shadow: 4px 4px 0 var(--ink); }
+  .winner-score { font-size: 18px; margin-bottom: 32px; }
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-backdrop.hidden { display: none; }
+  .modal {
+    background: var(--bg-2); border: 1px solid rgba(244, 236, 216, 0.15);
+    border-radius: 24px; padding: 24px; max-width: 360px; width: 100%; text-align: center;
+  }
+  .modal h3 { font-family: 'Caveat', cursive; font-size: 36px; color: var(--accent); margin-bottom: 12px; }
+  .modal p { margin-bottom: 20px; line-height: 1.5; }
+  .modal-buttons { display: flex; flex-direction: column; gap: 10px; }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+  .text-center { text-align: center; }
+  .mt-auto { margin-top: auto; }
+  .small { font-size: 13px; color: rgba(244, 236, 216, 0.75); }
+  .test-section {
+    background: #2a1810; border: 1px solid rgba(233, 196, 106, 0.4);
+    border-radius: 16px; padding: 16px; margin-top: 16px;
+  }
+  .test-section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); margin-bottom: 8px; font-weight: 700; }
+  .test-section p { font-size: 13px; color: var(--paper); margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="screen" id="screen-home">
+    <div class="topbar">
+      <h1>Zettelspiel</h1>
+      <button class="topbar-btn" id="btn-resume" style="display:none;">Fortsetzen</button>
+    </div>
+    <div class="title">
+      <div class="title-main">Zettelspiel</div>
+      <div class="title-sub">4 Runden · 2 Teams · 1 Schüssel</div>
+    </div>
+    <div class="round-rules text-center" style="margin: 0 auto 24px;">
+      <p>Jeder schreibt <span class="highlight">3 Wörter</span> auf.</p>
+      <p>Dann wird in <span class="highlight">4 Runden</span> erraten:</p>
+      <p style="margin-top:12px;">🗣️ Erklären → 🤸 Pantomime → 1️⃣ Ein Wort → 🔊 Geräusche</p>
+    </div>
+    <div class="mt-auto stack">
+      <button class="btn btn-primary btn-large" onclick="goToSetup()">Neues Spiel</button>
+      <button class="btn btn-secondary" onclick="showRules()">Regeln anzeigen</button>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="screen-setup">
+    <div class="topbar">
+      <button class="topbar-btn" onclick="showScreen('home')">← Zurück</button>
+      <h1 style="font-size:24px;">Setup</h1>
+      <span style="width:60px;"></span>
+    </div>
+    <div class="setup-section">
+      <div class="setup-label">Teams</div>
+      <div class="team-input">
+        <div class="team-color a"></div>
+        <input type="text" id="teamA-name" placeholder="Team A" maxlength="20">
+      </div>
+      <div class="team-input">
+        <div class="team-color b"></div>
+        <input type="text" id="teamB-name" placeholder="Team B" maxlength="20">
+      </div>
+    </div>
+    <div class="setup-section">
+      <div class="setup-label">Spieler</div>
+      <div class="player-list" id="player-list"></div>
+      <button class="add-btn" onclick="addPlayer()">+ Spieler hinzufügen</button>
+      <p class="small" style="margin-top:8px;">Mindestens 2 pro Team.</p>
+    </div>
+    <div class="setup-section">
+      <div class="setup-label">Einstellungen</div>
+      <div class="config-row">
+        <label>Wörter pro Spieler</label>
+        <input type="number" id="words-per-player" value="3" min="1" max="10">
+      </div>
+      <div class="config-row">
+        <label>Sekunden pro Zug</label>
+        <input type="number" id="seconds-per-turn" value="45" min="15" max="120">
+      </div>
+      <div class="config-row">
+        <label>Sound</label>
+        <input type="checkbox" id="sound-enabled" checked style="width:24px; height:24px;">
+      </div>
+    </div>
+    <div class="test-section">
+      <div class="test-section-title">🧪 Schnelltest</div>
+      <p>Wörter-Eingabe überspringen und mit zufälligen Testbegriffen (Promis, Filme, Alltagsdinge) direkt loslegen.</p>
+      <button class="btn btn-test" onclick="startWithTestWords()">Mit Testbegriffen starten →</button>
+    </div>
+    <button class="btn btn-primary btn-large" style="margin-top: 16px;" onclick="startWordCollection()">Wörter selbst eingeben →</button>
+  </div>
+
+  <div class="screen hidden" id="screen-collect">
+    <div class="topbar">
+      <button class="topbar-btn" onclick="confirmExit()">Abbrechen</button>
+      <h1 style="font-size:18px;">Wörter sammeln</h1>
+      <span style="width:60px;"></span>
+    </div>
+    <div id="collect-pass" class="word-collect hidden">
+      <div class="pass-prompt">
+        <div class="pass-prompt-icon">📱</div>
+        <div class="pass-prompt-text">Handy weitergeben an</div>
+      </div>
+      <div class="word-player-name" id="pass-player-name"></div>
+      <div class="word-team-tag" id="pass-team-tag"></div>
+      <div class="word-progress" id="pass-progress"></div>
+      <button class="btn btn-primary btn-large" style="margin-top:32px;" onclick="startCurrentPlayerCollect()">Bin bereit →</button>
+    </div>
+    <div id="collect-entry" class="word-collect hidden">
+      <div class="word-progress" id="entry-progress"></div>
+      <div class="word-player-name" id="entry-player-name"></div>
+      <div class="word-instruction">Schreib deine Wörter auf — keiner darf gucken!</div>
+      <div class="word-inputs" id="word-input-fields"></div>
+      <button class="btn btn-secondary" style="margin-bottom: 8px;" onclick="fillWithTestWords()">🎲 Testbegriffe einfüllen</button>
+      <button class="btn btn-success btn-large" onclick="submitCurrentWords()">Fertig ✓</button>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="screen-round-intro">
+    <div class="round-intro">
+      <div class="round-num" id="ri-num"></div>
+      <div class="round-title" id="ri-title"></div>
+      <div class="round-emoji" id="ri-emoji"></div>
+      <div class="round-rules" id="ri-rules"></div>
+      <div class="next-up">
+        <div class="next-up-label">Als Nächstes erklärt</div>
+        <div class="next-up-name" id="ri-player"></div>
+        <div class="ready-team" id="ri-team" style="margin-top:8px;"></div>
+      </div>
+      <button class="btn btn-primary btn-large" style="max-width:360px;" onclick="goToReadyScreen()">Verstanden →</button>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="screen-ready">
+    <div class="ready-screen">
+      <div class="ready-icon" id="ready-icon">📱</div>
+      <div class="ready-team" id="ready-team"></div>
+      <div class="ready-player" id="ready-player"></div>
+      <div class="ready-info" id="ready-info"></div>
+      <div style="background: #2a1810; border-radius: 16px; padding: 16px; margin-bottom: 24px; max-width: 320px;">
+        <div class="small" style="margin-bottom: 4px;">Aktuelle Runde</div>
+        <div style="font-size: 18px; font-weight: 700;" id="ready-round"></div>
+      </div>
+      <button class="btn btn-success btn-large" style="max-width: 320px;" onclick="startTurn()">START 🚀</button>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="screen-play">
+    <div class="play-screen">
+      <div class="play-header">
+        <div class="play-team"><span class="dot" id="play-team-dot"></span><span id="play-team-name"></span></div>
+        <div class="play-round-info"><div id="play-round-name"></div><div class="num">Runde <span id="play-round-num"></span>/4</div></div>
+      </div>
+      <div class="scoreboard">
+        <div class="scoreboard-team a">
+          <div class="scoreboard-name" id="sb-name-a"></div>
+          <div class="scoreboard-score" id="sb-score-a">0</div>
+        </div>
+        <div class="scoreboard-team b">
+          <div class="scoreboard-name" id="sb-name-b"></div>
+          <div class="scoreboard-score" id="sb-score-b">0</div>
+        </div>
+      </div>
+      <div class="timer" id="timer-display">45</div>
+      <div class="word-card">
+        <div class="word-counter" id="word-counter"></div>
+        <div class="word-text" id="current-word">—</div>
+      </div>
+      <div class="play-actions">
+        <button class="btn btn-success btn-large" onclick="correctWord()">Richtig ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="screen-summary">
+    <div class="summary">
+      <div class="summary-title" id="sum-title">Runde fertig!</div>
+      <div class="summary-sub" id="sum-sub"></div>
+      <div class="summary-scoreboard">
+        <div class="summary-team a">
+          <div class="summary-team-name" id="sum-name-a"></div>
+          <div class="summary-team-score" id="sum-score-a">0</div>
+          <div class="summary-team-delta" id="sum-delta-a"></div>
+        </div>
+        <div class="summary-team b">
+          <div class="summary-team-name" id="sum-name-b"></div>
+          <div class="summary-team-score" id="sum-score-b">0</div>
+          <div class="summary-team-delta" id="sum-delta-b"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-large mt-auto" onclick="continueAfterSummary()">Weiter →</button>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="screen-winner">
+    <div class="winner-screen">
+      <div class="winner-trophy">🏆</div>
+      <div class="winner-label">Sieger</div>
+      <div class="winner-name" id="winner-name"></div>
+      <div class="winner-score" id="winner-score"></div>
+      <div class="stack" style="width:100%; max-width: 320px;">
+        <button class="btn btn-primary btn-large" onclick="newGame()">Neues Spiel</button>
+        <button class="btn btn-secondary" onclick="showScreen('home'); clearGame();">Zum Start</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="modal">
+    <div class="modal">
+      <h3 id="modal-title"></h3>
+      <p id="modal-text"></p>
+      <div class="modal-buttons" id="modal-buttons"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const TEST_WORDS = [
+  'Cristiano Ronaldo', 'Lionel Messi', 'Dirk Nowitzki', 'LeBron James', 'Serena Williams',
+  'Taylor Swift', 'Beyoncé', 'Ed Sheeran', 'Bruno Mars', 'Rihanna',
+  'Angela Merkel', 'Barack Obama', 'Elon Musk', 'Bill Gates', 'Oprah Winfrey',
+  'Dwayne Johnson', 'Leonardo DiCaprio', 'Brad Pitt', 'Will Smith', 'Keanu Reeves',
+  'Til Schweiger', 'Matthias Schweighöfer', 'Elyas M\'Barek', 'Helene Fischer', 'Capital Bra',
+  'Titanic', 'Avatar', 'Star Wars', 'Harry Potter', 'Herr der Ringe',
+  'Game of Thrones', 'Breaking Bad', 'Stranger Things', 'Squid Game', 'Haus des Geldes',
+  'Matrix', 'Inception', 'Fluch der Karibik', 'James Bond', 'Fast and Furious',
+  'Pizza', 'Döner', 'Currywurst', 'Schokolade', 'Spaghetti',
+  'Fernseher', 'Kühlschrank', 'Toaster', 'Waschmaschine', 'Staubsauger',
+  'Zahnbürste', 'Regenschirm', 'Sonnenbrille', 'Rucksack', 'Fahrradhelm',
+  'Eiffelturm', 'Brandenburger Tor', 'Kolosseum', 'Freiheitsstatue', 'Chinesische Mauer',
+  'Mallorca', 'Oktoberfest', 'Karneval', 'Berghain', 'Schloss Neuschwanstein',
+  'Elefant', 'Känguru', 'Pinguin', 'Schmetterling', 'Krokodil',
+  'Einhorn', 'Drache', 'Waschbär', 'Faultier', 'Oktopus',
+  'Feuerwehrmann', 'Zahnarzt', 'Pilot', 'Friseur', 'Lehrer',
+  'Yoga', 'Bungee Jumping', 'Schach spielen', 'Angeln', 'Wandern',
+  'Liebe', 'Stress', 'Langeweile', 'Panik', 'Eifersucht',
+  'Vuvuzela', 'Selfie', 'Influencer', 'Black Friday', 'Klimawandel',
+  'Apple', 'McDonalds', 'Nike', 'Coca Cola', 'IKEA',
+  'WhatsApp', 'TikTok', 'Netflix', 'Spotify', 'Instagram'
+];
+
+function getRandomTestWords(n) {
+  const pool = [...TEST_WORDS];
+  const result = [];
+  for (let i = 0; i < n && pool.length > 0; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    result.push(pool.splice(idx, 1)[0]);
+  }
+  return result;
+}
+
+const ROUNDS = [
+  { id: 1, title: 'Erklären', emoji: '🗣️', rules: 'Erkläre das Wort mit Worten — aber das Wort selbst (oder Teile davon) darfst du <span class="highlight">nicht sagen</span>!' },
+  { id: 2, title: 'Pantomime', emoji: '🤸', rules: 'Stell das Wort dar — <span class="highlight">ohne ein einziges Wort</span> zu sagen!' },
+  { id: 3, title: 'Ein Wort', emoji: '1️⃣', rules: 'Du darfst <span class="highlight">genau ein einziges Wort</span> als Hinweis sagen. Mehr nicht.' },
+  { id: 4, title: 'Geräusche', emoji: '🔊', rules: 'Nur <span class="highlight">Geräusche</span>! Keine Wörter, keine Pantomime.' }
+];
+
+let game = null;
+let timerInterval = null;
+let collectIndex = 0;
+let defaultPlayers = [];
+
+async function saveGame() {
+  if (!game) return;
+  try { await window.storage.set('zettelspiel:state', JSON.stringify(game)); } catch(e) {}
+}
+
+async function loadGame() {
+  try {
+    const r = await window.storage.get('zettelspiel:state');
+    if (r && r.value) return JSON.parse(r.value);
+  } catch(e) {}
+  return null;
+}
+
+async function clearGame() {
+  game = null;
+  try { await window.storage.delete('zettelspiel:state'); } catch(e) {}
+  document.getElementById('btn-resume').style.display = 'none';
+}
+
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e) { return null; }
+  }
+  return audioCtx;
+}
+function tick() {
+  if (!soundOn()) return;
+  const ctx = getAudio(); if (!ctx) return;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.frequency.value = 880; o.type = 'sine';
+  g.gain.setValueAtTime(0.15, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(); o.stop(ctx.currentTime + 0.1);
+}
+function buzzer() {
+  if (!soundOn()) return;
+  const ctx = getAudio(); if (!ctx) return;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.frequency.setValueAtTime(220, ctx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.6);
+  o.type = 'sawtooth';
+  g.gain.setValueAtTime(0.25, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(); o.stop(ctx.currentTime + 0.6);
+}
+function ding() {
+  if (!soundOn()) return;
+  const ctx = getAudio(); if (!ctx) return;
+  [659, 784, 988].forEach((f, i) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.frequency.value = f; o.type = 'triangle';
+    const t = ctx.currentTime + i * 0.06;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.18, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t + 0.4);
+  });
+}
+function soundOn() { return game && game.soundEnabled; }
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  const el = document.getElementById('screen-' + name);
+  if (el) el.classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+
+async function init() {
+  const saved = await loadGame();
+  if (saved && saved.phase && saved.phase !== 'done') {
+    document.getElementById('btn-resume').style.display = 'block';
+    document.getElementById('btn-resume').onclick = () => resumeGame(saved);
+  }
+  if (defaultPlayers.length === 0) {
+    defaultPlayers = [
+      { name: '', team: 'a' }, { name: '', team: 'a' }, { name: '', team: 'a' },
+      { name: '', team: 'b' }, { name: '', team: 'b' }, { name: '', team: 'b' }
+    ];
+  }
+}
+
+function showRules() {
+  showModal('So wird gespielt',
+    'Jeder schreibt 3 Wörter auf — kann alles sein.<br><br>' +
+    'Dann 4 Runden mit den GLEICHEN Wörtern:<br><br>' +
+    '🗣️ <b>Erklären</b> – mit Worten umschreiben<br>' +
+    '🤸 <b>Pantomime</b> – nur Körper<br>' +
+    '1️⃣ <b>Ein Wort</b> – ein Hinweis-Wort<br>' +
+    '🔊 <b>Geräusche</b> – nur Sounds<br><br>' +
+    '45 Sek pro Zug. Team mit meisten Punkten gewinnt.',
+    [{ text: 'Verstanden', action: hideModal }]);
+}
+
+function goToSetup() {
+  showScreen('setup');
+  renderPlayerList();
+}
+
+function renderPlayerList() {
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  defaultPlayers.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `
+      <div class="badge ${p.team}">${(p.team).toUpperCase()}</div>
+      <input type="text" placeholder="Name" value="${escapeHtml(p.name)}" data-idx="${i}" maxlength="15">
+      <button class="icon-btn" onclick="toggleTeam(${i})">⇄</button>
+      <button class="icon-btn" onclick="removePlayer(${i})">✕</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      defaultPlayers[parseInt(e.target.dataset.idx)].name = e.target.value;
+    });
+  });
+}
+
+function addPlayer() {
+  const a = defaultPlayers.filter(p => p.team === 'a').length;
+  const b = defaultPlayers.filter(p => p.team === 'b').length;
+  defaultPlayers.push({ name: '', team: a <= b ? 'a' : 'b' });
+  renderPlayerList();
+}
+
+function removePlayer(idx) {
+  if (defaultPlayers.length <= 4) {
+    showModal('Mindestens 4 Spieler', 'Du brauchst mindestens 2 Spieler pro Team.', [{ text: 'OK', action: hideModal }]);
+    return;
+  }
+  defaultPlayers.splice(idx, 1);
+  renderPlayerList();
+}
+
+function toggleTeam(idx) {
+  defaultPlayers[idx].team = defaultPlayers[idx].team === 'a' ? 'b' : 'a';
+  renderPlayerList();
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+function buildGameFromSetup() {
+  const teamAName = (document.getElementById('teamA-name').value || 'Team Rot').trim();
+  const teamBName = (document.getElementById('teamB-name').value || 'Team Grün').trim();
+  const wpp = Math.max(1, Math.min(10, parseInt(document.getElementById('words-per-player').value) || 3));
+  const sec = Math.max(15, Math.min(120, parseInt(document.getElementById('seconds-per-turn').value) || 45));
+  const soundEnabled = document.getElementById('sound-enabled').checked;
+
+  defaultPlayers.forEach((p, i) => {
+    if (!p.name.trim()) p.name = `Spieler ${i + 1}`;
+  });
+
+  const teamACount = defaultPlayers.filter(p => p.team === 'a').length;
+  const teamBCount = defaultPlayers.filter(p => p.team === 'b').length;
+  if (teamACount < 2 || teamBCount < 2) {
+    showModal('Teams unausgeglichen', 'Jedes Team braucht mindestens 2 Spieler.', [{ text: 'OK', action: hideModal }]);
+    return null;
+  }
+
+  return {
+    phase: 'collect',
+    teamA: { name: teamAName, players: defaultPlayers.filter(p => p.team === 'a').map(p => p.name), score: 0, lastRoundScore: 0 },
+    teamB: { name: teamBName, players: defaultPlayers.filter(p => p.team === 'b').map(p => p.name), score: 0, lastRoundScore: 0 },
+    allPlayers: defaultPlayers.map(p => ({ name: p.name, team: p.team })),
+    wordsPerPlayer: wpp,
+    secondsPerTurn: sec,
+    soundEnabled: soundEnabled,
+    collectedWords: {},
+    bowl: [], allWords: [],
+    currentRound: 0, currentTeam: 'a',
+    teamATurnIdx: 0, teamBTurnIdx: 0,
+    currentWord: null, timeLeft: sec, isRunning: false,
+    historyByRound: []
+  };
+}
+
+function startWordCollection() {
+  const g = buildGameFromSetup();
+  if (!g) return;
+  game = g;
+  collectIndex = 0;
+  saveGame();
+  showCollectPass();
+  showScreen('collect');
+}
+
+function startWithTestWords() {
+  const g = buildGameFromSetup();
+  if (!g) return;
+  game = g;
+  const totalWords = game.allPlayers.length * game.wordsPerPlayer;
+  const words = getRandomTestWords(totalWords);
+  game.allPlayers.forEach((p, i) => {
+    game.collectedWords[i] = words.slice(i * game.wordsPerPlayer, (i + 1) * game.wordsPerPlayer);
+  });
+  finalizeWords();
+  startRound(1);
+}
+
+function showCollectPass() {
+  document.getElementById('collect-pass').classList.remove('hidden');
+  document.getElementById('collect-entry').classList.add('hidden');
+  const player = game.allPlayers[collectIndex];
+  document.getElementById('pass-player-name').textContent = player.name;
+  const tag = document.getElementById('pass-team-tag');
+  tag.textContent = player.team === 'a' ? game.teamA.name : game.teamB.name;
+  tag.className = 'word-team-tag ' + player.team;
+  document.getElementById('pass-progress').textContent = `Spieler ${collectIndex + 1} von ${game.allPlayers.length}`;
+}
+
+function startCurrentPlayerCollect() {
+  document.getElementById('collect-pass').classList.add('hidden');
+  document.getElementById('collect-entry').classList.remove('hidden');
+  const player = game.allPlayers[collectIndex];
+  document.getElementById('entry-player-name').textContent = player.name;
+  document.getElementById('entry-progress').textContent = `Spieler ${collectIndex + 1} von ${game.allPlayers.length}`;
+  const fields = document.getElementById('word-input-fields');
+  fields.innerHTML = '';
+  for (let i = 0; i < game.wordsPerPlayer; i++) {
+    const div = document.createElement('div');
+    div.className = 'word-input-wrap';
+    div.dataset.num = (i + 1);
+    div.innerHTML = `<input type="text" placeholder="Wort ${i+1}" maxlength="40" autocomplete="off" autocorrect="off" spellcheck="false">`;
+    fields.appendChild(div);
+  }
+  setTimeout(() => fields.querySelector('input')?.focus(), 100);
+}
+
+function fillWithTestWords() {
+  const inputs = document.querySelectorAll('#word-input-fields input');
+  const words = getRandomTestWords(inputs.length);
+  inputs.forEach((inp, i) => { inp.value = words[i] || ''; });
+}
+
+function submitCurrentWords() {
+  const inputs = document.querySelectorAll('#word-input-fields input');
+  const words = [];
+  for (const inp of inputs) {
+    const w = inp.value.trim();
+    if (!w) {
+      showModal('Fehlt was', `Bitte alle ${game.wordsPerPlayer} Wörter ausfüllen.`, [{ text: 'OK', action: hideModal }]);
+      return;
+    }
+    words.push(w);
+  }
+  game.collectedWords[collectIndex] = words;
+  collectIndex++;
+  if (collectIndex >= game.allPlayers.length) {
+    finalizeWords();
+    startRound(1);
+  } else {
+    saveGame();
+    showCollectPass();
+  }
+}
+
+function finalizeWords() {
+  game.allWords = [];
+  Object.values(game.collectedWords).forEach(arr => game.allWords.push(...arr));
+  game.bowl = shuffle([...game.allWords]);
+  game.currentRound = 1;
+  game.phase = 'round-intro';
+  saveGame();
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function startRound(num) {
+  game.currentRound = num;
+  game.phase = 'round-intro';
+  game.bowl = shuffle([...game.allWords]);
+  game.teamA.lastRoundScore = 0;
+  game.teamB.lastRoundScore = 0;
+  saveGame();
+  showRoundIntro();
+}
+
+function showRoundIntro() {
+  const r = ROUNDS[game.currentRound - 1];
+  document.getElementById('ri-num').textContent = `Runde ${r.id} von 4`;
+  document.getElementById('ri-title').textContent = r.title;
+  document.getElementById('ri-emoji').textContent = r.emoji;
+  document.getElementById('ri-rules').innerHTML = `<p>${r.rules}</p>`;
+  const player = currentPlayer();
+  document.getElementById('ri-player').textContent = player.name;
+  const tag = document.getElementById('ri-team');
+  tag.textContent = player.team === 'a' ? game.teamA.name : game.teamB.name;
+  tag.className = 'ready-team ' + player.team;
+  showScreen('round-intro');
+}
+
+function currentPlayer() {
+  if (game.currentTeam === 'a') {
+    return { name: game.teamA.players[game.teamATurnIdx % game.teamA.players.length], team: 'a' };
+  } else {
+    return { name: game.teamB.players[game.teamBTurnIdx % game.teamB.players.length], team: 'b' };
+  }
+}
+
+function goToReadyScreen() {
+  game.phase = 'ready';
+  saveGame();
+  const player = currentPlayer();
+  document.getElementById('ready-player').textContent = player.name;
+  const tag = document.getElementById('ready-team');
+  tag.textContent = player.team === 'a' ? game.teamA.name : game.teamB.name;
+  tag.className = 'ready-team ' + player.team;
+  document.getElementById('ready-info').textContent = `erklärt jetzt — ${game.bowl.length} Wörter in der Schüssel`;
+  const r = ROUNDS[game.currentRound - 1];
+  document.getElementById('ready-round').innerHTML = `${r.emoji} Runde ${r.id}: ${r.title}`;
+  document.getElementById('ready-icon').textContent = '📱';
+  showScreen('ready');
+}
+
+function startTurn() {
+  getAudio();
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  game.phase = 'play';
+  game.timeLeft = game.secondsPerTurn;
+  game.isRunning = true;
+  if (game.bowl.length === 0) { finishRound(); return; }
+  drawWord();
+  updateScoreboard();
+  updatePlayHeader();
+  updateTimerDisplay();
+  showScreen('play');
+  startTimer();
+  saveGame();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    game.timeLeft--;
+    updateTimerDisplay();
+    if (game.timeLeft <= 10 && game.timeLeft > 0) tick();
+    if (game.timeLeft <= 0) {
+      clearInterval(timerInterval);
+      buzzer();
+      endTurn();
+    } else if (game.timeLeft % 5 === 0) {
+      saveGame();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('timer-display');
+  el.textContent = game.timeLeft;
+  el.classList.toggle('warning', game.timeLeft <= 15 && game.timeLeft > 5);
+  el.classList.toggle('danger', game.timeLeft <= 5);
+}
+
+function updatePlayHeader() {
+  const player = currentPlayer();
+  const dot = document.getElementById('play-team-dot');
+  dot.className = 'dot ' + player.team;
+  document.getElementById('play-team-name').textContent = `${player.name}`;
+  const r = ROUNDS[game.currentRound - 1];
+  document.getElementById('play-round-name').textContent = r.emoji + ' ' + r.title;
+  document.getElementById('play-round-num').textContent = game.currentRound;
+}
+
+function updateScoreboard() {
+  document.getElementById('sb-name-a').textContent = game.teamA.name;
+  document.getElementById('sb-name-b').textContent = game.teamB.name;
+  document.getElementById('sb-score-a').textContent = game.teamA.score;
+  document.getElementById('sb-score-b').textContent = game.teamB.score;
+}
+
+function drawWord() {
+  if (game.bowl.length === 0) { game.currentWord = null; return; }
+  game.currentWord = game.bowl.shift();
+  document.getElementById('current-word').textContent = game.currentWord;
+  document.getElementById('word-counter').textContent = `${game.bowl.length + 1} übrig`;
+}
+
+function correctWord() {
+  if (!game.isRunning || !game.currentWord) return;
+  ding();
+  if (game.currentTeam === 'a') { game.teamA.score++; game.teamA.lastRoundScore++; }
+  else { game.teamB.score++; game.teamB.lastRoundScore++; }
+  updateScoreboard();
+  if (game.bowl.length === 0) {
+    clearInterval(timerInterval);
+    finishRound();
+  } else {
+    drawWord();
+    saveGame();
+  }
+}
+
+function endTurn() {
+  game.isRunning = false;
+  // Aktuelles Wort zurück in die Schüssel (an zufällige Position, aber nicht oben)
+  if (game.currentWord) {
+    if (game.bowl.length > 0) {
+      const pos = Math.min(game.bowl.length, 1 + Math.floor(Math.random() * game.bowl.length));
+      game.bowl.splice(pos, 0, game.currentWord);
+    } else {
+      game.bowl.push(game.currentWord);
+    }
+    game.currentWord = null;
+  }
+  if (game.currentTeam === 'a') { game.teamATurnIdx++; game.currentTeam = 'b'; }
+  else { game.teamBTurnIdx++; game.currentTeam = 'a'; }
+  saveGame();
+  if (game.bowl.length === 0) finishRound();
+  else goToReadyScreen();
+}
+
+function finishRound() {
+  game.phase = 'summary';
+  game.historyByRound.push({
+    round: game.currentRound,
+    scoreA: game.teamA.lastRoundScore,
+    scoreB: game.teamB.lastRoundScore,
+    totalA: game.teamA.score,
+    totalB: game.teamB.score
+  });
+  saveGame();
+  showSummary();
+}
+
+function showSummary() {
+  const r = ROUNDS[game.currentRound - 1];
+  document.getElementById('sum-title').textContent = r.title + ' fertig!';
+  document.getElementById('sum-sub').textContent = `Runde ${r.id} von 4`;
+  document.getElementById('sum-name-a').textContent = game.teamA.name;
+  document.getElementById('sum-name-b').textContent = game.teamB.name;
+  document.getElementById('sum-score-a').textContent = game.teamA.score;
+  document.getElementById('sum-score-b').textContent = game.teamB.score;
+  document.getElementById('sum-delta-a').textContent = `+${game.teamA.lastRoundScore} in dieser Runde`;
+  document.getElementById('sum-delta-b').textContent = `+${game.teamB.lastRoundScore} in dieser Runde`;
+  showScreen('summary');
+}
+
+function continueAfterSummary() {
+  if (game.currentRound < 4) startRound(game.currentRound + 1);
+  else showWinner();
+}
+
+function showWinner() {
+  game.phase = 'done';
+  saveGame();
+  const aScore = game.teamA.score;
+  const bScore = game.teamB.score;
+  let name;
+  if (aScore > bScore) {
+    name = game.teamA.name;
+    document.getElementById('winner-name').style.color = 'var(--teamA)';
+  } else if (bScore > aScore) {
+    name = game.teamB.name;
+    document.getElementById('winner-name').style.color = 'var(--teamB)';
+  } else {
+    name = 'Unentschieden!';
+    document.getElementById('winner-name').style.color = 'var(--gold)';
+  }
+  document.getElementById('winner-name').textContent = name;
+  document.getElementById('winner-score').textContent = `${game.teamA.name} ${aScore} : ${bScore} ${game.teamB.name}`;
+  ding(); setTimeout(ding, 200); setTimeout(ding, 400);
+  showScreen('winner');
+}
+
+function newGame() {
+  clearGame();
+  showScreen('setup');
+  renderPlayerList();
+}
+
+function resumeGame(saved) {
+  game = saved;
+  if (game.phase === 'collect') {
+    collectIndex = Object.keys(game.collectedWords).length;
+    if (collectIndex >= game.allPlayers.length) {
+      finalizeWords();
+      startRound(1);
+    } else {
+      showScreen('collect');
+      showCollectPass();
+    }
+  } else if (game.phase === 'round-intro') showRoundIntro();
+  else if (game.phase === 'ready' || game.phase === 'play') goToReadyScreen();
+  else if (game.phase === 'summary') showSummary();
+  else if (game.phase === 'done') showWinner();
+  else showScreen('home');
+}
+
+function showModal(title, text, buttons) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-text').innerHTML = text;
+  const btnContainer = document.getElementById('modal-buttons');
+  btnContainer.innerHTML = '';
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'btn ' + (b.primary ? 'btn-primary' : 'btn-secondary');
+    btn.textContent = b.text;
+    btn.onclick = b.action;
+    btnContainer.appendChild(btn);
+  });
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function hideModal() {
+  document.getElementById('modal').classList.add('hidden');
+}
+
+function confirmExit() {
+  showModal('Spiel abbrechen?', 'Der aktuelle Spielstand geht verloren.', [
+    { text: 'Weiter spielen', action: hideModal },
+    { text: 'Abbrechen', action: () => { hideModal(); clearGame(); showScreen('home'); } }
+  ]);
+}
+
+init();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW reg failed', err));
+    });
+  }
+</script>
+</body>
+</html>
