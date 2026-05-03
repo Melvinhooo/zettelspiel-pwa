@@ -10,11 +10,33 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Zettelspiel">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script>
+  (function() {
+    try {
+      var saved = localStorage.getItem('zettelspiel-theme');
+      var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.dataset.theme = theme;
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', theme === 'light' ? '#f4ecd8' : '#1a0f0a');
+    } catch (e) {}
+  })();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
+    /* Dark theme (default) */
     --bg: #1a0f0a;
     --bg-2: #2a1810;
+    --surface-3: #3d1f1f;
+    --text-main: #f4ecd8;
+    --text-muted: rgba(244, 236, 216, 0.75);
+    --border-soft: rgba(244, 236, 216, 0.15);
+    --border-mid: rgba(244, 236, 216, 0.20);
+    --border-strong: rgba(244, 236, 216, 0.25);
+    --border-input: rgba(244, 236, 216, 0.30);
+    --border-extra: rgba(244, 236, 216, 0.35);
+    --input-bg: rgba(244, 236, 216, 0.95);
+    --modal-backdrop: rgba(0, 0, 0, 0.85);
     --paper: #f4ecd8;
     --ink: #1a0f0a;
     --accent: #e94f37;
@@ -25,18 +47,35 @@
     --teamA: #e94f37;
     --teamB: #2a9d8f;
   }
+  [data-theme="light"] {
+    --bg: #f4ecd8;
+    --bg-2: #ead8b8;
+    --surface-3: #d8c19a;
+    --text-main: #1a0f0a;
+    --text-muted: rgba(26, 15, 10, 0.65);
+    --border-soft: rgba(26, 15, 10, 0.10);
+    --border-mid: rgba(26, 15, 10, 0.18);
+    --border-strong: rgba(26, 15, 10, 0.22);
+    --border-input: rgba(26, 15, 10, 0.25);
+    --border-extra: rgba(26, 15, 10, 0.30);
+    --input-bg: rgba(255, 255, 255, 0.7);
+    --modal-backdrop: rgba(80, 50, 30, 0.7);
+    --accent-2: #c8551a;
+    --gold: #b07f1e;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html { background: #1a0f0a; }
+  html { background: var(--bg); transition: background 0.2s; }
   html, body { height: 100%; overflow-x: hidden; overscroll-behavior: none; }
   body {
     font-family: 'Bricolage Grotesque', sans-serif;
-    background: #1a0f0a;
-    color: var(--paper);
+    background: var(--bg);
+    color: var(--text-main);
     min-height: 100vh;
     min-height: 100dvh;
     user-select: none;
     -webkit-user-select: none;
     overflow-y: auto;
+    transition: background 0.2s, color 0.2s;
   }
   .app {
     position: relative;
@@ -45,7 +84,7 @@
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
-    background: #1a0f0a;
+    background: var(--bg);
   }
   .screen { flex: 1; display: flex; flex-direction: column; padding: 20px; animation: fadeIn 0.3s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -53,10 +92,11 @@
   .topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 4px 16px; }
   .topbar h1 { font-family: 'Caveat', cursive; font-size: 32px; color: var(--accent-2); font-weight: 700; }
   .topbar-btn {
-    background: #2a1810; border: 1px solid rgba(244, 236, 216, 0.25);
-    color: var(--paper); padding: 8px 14px; border-radius: 12px; font-family: inherit;
+    background: var(--bg-2); border: 1px solid var(--border-strong);
+    color: var(--text-main); padding: 8px 14px; border-radius: 12px; font-family: inherit;
     font-size: 13px; font-weight: 600; cursor: pointer;
   }
+  .theme-toggle { padding: 8px 12px; font-size: 16px; }
   .title { text-align: center; margin: 30px 0 40px; }
   .title-main {
     font-family: 'Caveat', cursive; font-size: 72px; font-weight: 700; color: var(--accent);
@@ -72,18 +112,18 @@
   .btn:active { transform: translateY(2px); }
   .btn-primary { background: var(--accent); color: var(--paper); box-shadow: 0 4px 0 #b03a26, 0 6px 16px rgba(233, 79, 55, 0.3); }
   .btn-primary:active { box-shadow: 0 2px 0 #b03a26; }
-  .btn-secondary { background: #2a1810; color: var(--paper); border: 2px solid rgba(244, 236, 216, 0.3); }
+  .btn-secondary { background: var(--bg-2); color: var(--text-main); border: 2px solid var(--border-input); }
   .btn-success { background: var(--green); color: var(--paper); box-shadow: 0 4px 0 #1f7368, 0 6px 16px rgba(42, 157, 143, 0.3); }
   .btn-success:active { box-shadow: 0 2px 0 #1f7368; }
   .btn-skip { background: var(--gold); color: var(--ink); box-shadow: 0 4px 0 #b89a4f; }
   .btn-skip:active { box-shadow: 0 2px 0 #b89a4f; }
   .btn-large { padding: 24px; font-size: 22px; }
   .btn-test {
-    background: #1a0f0a; color: var(--gold); border: 2px dashed var(--gold);
+    background: var(--bg); color: var(--gold); border: 2px dashed var(--gold);
     padding: 14px; font-size: 15px;
   }
   .setup-section {
-    background: #2a1810; border: 1px solid rgba(244, 236, 216, 0.15);
+    background: var(--bg-2); border: 1px solid var(--border-soft);
     border-radius: 20px; padding: 20px; margin-bottom: 16px;
   }
   .setup-label { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-2); margin-bottom: 12px; font-weight: 600; }
@@ -92,7 +132,7 @@
   .team-color.a { background: var(--teamA); }
   .team-color.b { background: var(--teamB); }
   input[type="text"], input[type="number"] {
-    flex: 1; background: rgba(244, 236, 216, 0.95); border: none; color: var(--ink);
+    flex: 1; background: var(--input-bg); border: none; color: var(--ink);
     padding: 14px 16px; border-radius: 12px; font-family: inherit; font-size: 16px;
     font-weight: 600; width: 100%;
   }
@@ -110,26 +150,26 @@
   .badge.a { background: var(--teamA); }
   .badge.b { background: var(--teamB); }
   .icon-btn {
-    background: #3d1f1f; border: none; color: var(--paper);
+    background: var(--surface-3); border: none; color: var(--text-main);
     width: 36px; height: 36px; border-radius: 10px; font-size: 18px; cursor: pointer;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .add-btn {
-    margin-top: 8px; background: #1a0f0a;
-    border: 2px dashed rgba(244, 236, 216, 0.35); color: var(--accent-2);
+    margin-top: 8px; background: var(--bg);
+    border: 2px dashed var(--border-extra); color: var(--accent-2);
     padding: 12px; border-radius: 12px; font-family: inherit; font-weight: 600;
     cursor: pointer; width: 100%;
   }
   .word-collect { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; }
   .word-progress { font-size: 14px; color: var(--accent-2); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 12px; }
-  .word-player-name { font-family: 'Caveat', cursive; font-size: 56px; color: var(--paper); margin-bottom: 8px; line-height: 1; }
+  .word-player-name { font-family: 'Caveat', cursive; font-size: 56px; color: var(--text-main); margin-bottom: 8px; line-height: 1; }
   .word-team-tag {
     display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px;
     font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;
   }
   .word-team-tag.a { background: var(--teamA); color: white; }
   .word-team-tag.b { background: var(--teamB); color: white; }
-  .word-instruction { font-size: 16px; margin-bottom: 24px; color: var(--paper); opacity: 0.9; }
+  .word-instruction { font-size: 16px; margin-bottom: 24px; color: var(--text-main); opacity: 0.9; }
   .word-inputs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
   .word-input-wrap { position: relative; }
   .word-input-wrap::before {
@@ -140,7 +180,7 @@
   }
   .word-input-wrap input { padding: 18px 20px 18px 28px; font-family: 'Caveat', cursive; font-size: 24px; font-weight: 700; }
   .pass-prompt {
-    background: #2a1810; border: 2px solid var(--gold);
+    background: var(--bg-2); border: 2px solid var(--gold);
     border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 24px;
   }
   .pass-prompt-icon { font-size: 48px; margin-bottom: 12px; }
@@ -153,10 +193,10 @@
   }
   .round-emoji { font-size: 80px; margin: 20px 0; }
   .round-rules {
-    background: #2a1810; border: 1px solid rgba(244, 236, 216, 0.2);
+    background: var(--bg-2); border: 1px solid var(--border-mid);
     border-radius: 20px; padding: 24px; margin-bottom: 32px; max-width: 400px;
   }
-  .round-rules p { font-size: 16px; line-height: 1.5; margin-bottom: 8px; color: var(--paper); }
+  .round-rules p { font-size: 16px; line-height: 1.5; margin-bottom: 8px; color: var(--text-main); }
   .round-rules .highlight { color: var(--gold); font-weight: 700; }
   .next-up { margin-bottom: 24px; }
   .next-up-label { font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--accent-2); margin-bottom: 8px; }
@@ -168,10 +208,10 @@
   .play-team .dot.a { background: var(--teamA); }
   .play-team .dot.b { background: var(--teamB); }
   .play-round-info { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-2); }
-  .play-round-info .num { font-size: 16px; color: var(--paper); }
+  .play-round-info .num { font-size: 16px; color: var(--text-main); }
   .timer {
     font-family: 'Bricolage Grotesque', sans-serif; font-size: 96px; font-weight: 800;
-    text-align: center; color: var(--paper); line-height: 1; margin: 16px 0;
+    text-align: center; color: var(--text-main); line-height: 1; margin: 16px 0;
     transition: color 0.2s, transform 0.2s;
   }
   .timer.warning { color: var(--gold); }
@@ -195,7 +235,7 @@
   }
   .play-actions { display: flex; }
   .scoreboard {
-    display: flex; justify-content: space-around; background: #2a1810;
+    display: flex; justify-content: space-around; background: var(--bg-2);
     border-radius: 16px; padding: 12px; margin-bottom: 12px;
   }
   .scoreboard-team { text-align: center; }
@@ -212,13 +252,13 @@
   }
   .ready-team.a { background: var(--teamA); }
   .ready-team.b { background: var(--teamB); }
-  .ready-player { font-family: 'Caveat', cursive; font-size: 64px; color: var(--paper); line-height: 1; margin-bottom: 8px; }
+  .ready-player { font-family: 'Caveat', cursive; font-size: 64px; color: var(--text-main); line-height: 1; margin-bottom: 8px; }
   .ready-info { font-size: 16px; opacity: 0.8; margin-bottom: 32px; }
   .summary { flex: 1; display: flex; flex-direction: column; padding: 12px; }
   .summary-title { font-family: 'Caveat', cursive; font-size: 56px; text-align: center; color: var(--accent); margin-bottom: 8px; text-shadow: 3px 3px 0 var(--ink); }
   .summary-sub { text-align: center; color: var(--accent-2); text-transform: uppercase; letter-spacing: 3px; font-size: 13px; margin-bottom: 24px; }
   .summary-scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-  .summary-team { background: #2a1810; border-radius: 20px; padding: 20px; text-align: center; border-top: 6px solid; }
+  .summary-team { background: var(--bg-2); border-radius: 20px; padding: 20px; text-align: center; border-top: 6px solid; }
   .summary-team.a { border-color: var(--teamA); }
   .summary-team.b { border-color: var(--teamB); }
   .summary-team-name { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; font-weight: 600; }
@@ -233,13 +273,13 @@
   .winner-name { font-family: 'Caveat', cursive; font-size: 96px; line-height: 1; margin-bottom: 16px; text-shadow: 4px 4px 0 var(--ink); }
   .winner-score { font-size: 18px; margin-bottom: 32px; }
   .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 100;
+    position: fixed; inset: 0; background: var(--modal-backdrop); z-index: 100;
     display: flex; align-items: center; justify-content: center; padding: 24px;
     animation: fadeIn 0.2s ease;
   }
   .modal-backdrop.hidden { display: none; }
   .modal {
-    background: var(--bg-2); border: 1px solid rgba(244, 236, 216, 0.15);
+    background: var(--bg-2); border: 1px solid var(--border-soft);
     border-radius: 24px; padding: 24px; max-width: 360px; width: 100%; text-align: center;
   }
   .modal h3 { font-family: 'Caveat', cursive; font-size: 36px; color: var(--accent); margin-bottom: 12px; }
@@ -248,13 +288,13 @@
   .stack { display: flex; flex-direction: column; gap: 12px; }
   .text-center { text-align: center; }
   .mt-auto { margin-top: auto; }
-  .small { font-size: 13px; color: rgba(244, 236, 216, 0.75); }
+  .small { font-size: 13px; color: var(--text-muted); }
   .test-section {
-    background: #2a1810; border: 1px solid rgba(233, 196, 106, 0.4);
+    background: var(--bg-2); border: 1px solid rgba(233, 196, 106, 0.4);
     border-radius: 16px; padding: 16px; margin-top: 16px;
   }
   .test-section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); margin-bottom: 8px; font-weight: 700; }
-  .test-section p { font-size: 13px; color: var(--paper); margin-bottom: 12px; }
+  .test-section p { font-size: 13px; color: var(--text-main); margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -263,7 +303,10 @@
   <div class="screen" id="screen-home">
     <div class="topbar">
       <h1>Zettelspiel</h1>
-      <button class="topbar-btn" id="btn-resume" style="display:none;">Fortsetzen</button>
+      <div style="display:flex; gap:8px;">
+        <button class="topbar-btn theme-toggle" id="btn-theme" onclick="toggleTheme()" aria-label="Theme wechseln">🌙</button>
+        <button class="topbar-btn" id="btn-resume" style="display:none;">Fortsetzen</button>
+      </div>
     </div>
     <div class="title">
       <div class="title-main">Zettelspiel</div>
@@ -373,7 +416,7 @@
       <div class="ready-team" id="ready-team"></div>
       <div class="ready-player" id="ready-player"></div>
       <div class="ready-info" id="ready-info"></div>
-      <div style="background: #2a1810; border-radius: 16px; padding: 16px; margin-bottom: 24px; max-width: 320px;">
+      <div style="background: var(--bg-2); border-radius: 16px; padding: 16px; margin-bottom: 24px; max-width: 320px;">
         <div class="small" style="margin-bottom: 4px;">Aktuelle Runde</div>
         <div style="font-size: 18px; font-weight: 700;" id="ready-round"></div>
       </div>
@@ -1029,12 +1072,32 @@ function confirmExit() {
   ]);
 }
 
+function toggleTheme() {
+  var current = document.documentElement.dataset.theme || 'dark';
+  var next = current === 'light' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem('zettelspiel-theme', next); } catch (e) {}
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', next === 'light' ? '#f4ecd8' : '#1a0f0a');
+  var btn = document.getElementById('btn-theme');
+  if (btn) btn.textContent = next === 'light' ? '☀️' : '🌙';
+}
+(function syncThemeButton() {
+  var theme = document.documentElement.dataset.theme || 'dark';
+  var btn = document.getElementById('btn-theme');
+  if (btn) btn.textContent = theme === 'light' ? '☀️' : '🌙';
+})();
+
 init();
 </script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW reg failed', err));
+    });
+    let hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (hadController) window.location.reload();
     });
   }
 </script>

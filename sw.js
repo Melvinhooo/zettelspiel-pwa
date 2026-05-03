@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zettelspiel-v1';
+const CACHE_NAME = 'zettelspiel-v2';
 const ASSETS = [
   './',
   './index.html',
